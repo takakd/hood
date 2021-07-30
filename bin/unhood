@@ -1,0 +1,27 @@
+#!/usr/bin/env zsh
+
+_HOOD_DIR=$(cd $(dirname "$0"); pwd)
+
+# Check whether hook is active
+if [[ "$_HOOD_ACTIVE" == "" ]]; then
+    echo "enable hood does not exists."
+    return
+fi
+
+# Restore PS1
+if [[ "$_HOOD_OLD_PS1" != "" ]]; then
+    PS1="$_HOOD_OLD_PS1"
+fi
+
+# Run deactivate rc. Deactivate rc is option
+if [[ -e "${_HOOD_DIR}/../rc/${_HOOD_ACTIVE}_deactivate" ]]; then
+    source "${_HOOD_DIR}/../rc/${_HOOD_ACTIVE}_deactivate"
+fi
+
+# Clean up
+unset _HOOD_DIR
+unset _HOOD_ACTIVE 
+unset _HOOD_OLD_PS1
+
+# Remove unhood alias
+unalias unhood
