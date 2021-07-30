@@ -1,0 +1,64 @@
+#!/usr/bin/env zsh
+
+_HOOD_DIR=$(cd $(dirname "$0"); pwd)
+
+function usage() {
+cat <<_EOT_
+Usage:
+    $0 [name]
+
+Description:
+    The hood utility load a temporary run-command file.
+
+Examples:
+    To load "rc/[name]_activate" run-command file:
+
+        $ hood [name]
+
+    After working finished:
+
+        $ unhood
+    
+    unhood run "rc/[name]_deactivate" if it exists.
+_EOT_
+}
+
+hood() {
+    # Check whether hook is active
+    if [[ "$_HOOD_ACTIVE" != "" ]]; then
+        echo "exec 'unhood' before activating another rc."
+        return
+    fi
+
+    _HOOD_ACTIVE="$1"
+
+    # Change PS1
+    _HOOD_OLD_PS1="$PS1"
+    PS1="(${_HOOD_ACTIVE}) $PS1"
+
+    # Run activate rc
+    source "${_HOOD_DIR}/../rc/${_HOOD_ACTIVE}_activate"
+
+    # Add unhood command
+    alias unhood="source ${_HOOD_DIR}/unhood"
+}
+
+if [[ $# -lt 1 ]]; then 
+    usage
+    return
+elif [[ $1 == '' ]]; then
+    usage
+    return
+fi
+
+# Need activate rc at least
+if [[ ! -e "${_HOOD_DIR}/../rc/${1}_activate" ]]; then
+    echo "${1}" rc does not exists.
+    return
+fi
+
+# Exec hood process
+hood "$1"
+
+# Clean up temporary variables
+unset _HOOD_DIR
